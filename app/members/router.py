@@ -1,6 +1,9 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.orm import Session
 
+from app.clock import get_now
 from app.db import get_session
 from app.errors import error_responses
 from app.members import service
@@ -18,8 +21,12 @@ router = APIRouter(prefix="/members", tags=["members"])
     dependencies=WRITE_DEPENDENCIES,
     responses=error_responses(401, 409, 422, 503),
 )
-def create_member(data: MemberCreate, session: Session = Depends(get_session)) -> MemberOut:
-    return service.create_member(session, data)
+def create_member(
+    data: MemberCreate,
+    session: Session = Depends(get_session),
+    now: datetime = Depends(get_now),
+) -> MemberOut:
+    return service.create_member(session, data, now)
 
 
 @router.get("", response_model=Page[MemberOut], responses=error_responses(422))
